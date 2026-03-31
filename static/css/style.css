@@ -1,0 +1,19 @@
+.protocol-document {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.protocol-document table {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.protocol-document th {
+    background-color: #f8f9fa;
+    font-weight: 500;
+}
+
+.header img {
+    max-height: 80px;
+} 

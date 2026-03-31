@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Протоколы вибродиагностики</h2>
+        <a href="{{ url_for('new_protocol') }}" class="btn btn-primary">
+            Новый протокол
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Номер протокола</th>
+                        <th>Дата</th>
+                        <th>Оборудование</th>
+                        <th>Объект</th>
+                        <th>Специалист</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for protocol in protocols %}
+                    <tr>
+                        <td>{{ protocol.protocol_number }}</td>
+                        <td>{{ protocol.date.strftime('%d.%m.%Y') }}</td>
+                        <td>{{ protocol.equipment.name if protocol.equipment else '' }}</td>
+                        <td>{{ protocol.object.name if protocol.object else '' }}</td>
+                        <td>{{ protocol.inspector.name if protocol.inspector else '' }}</td>
+                        <td>
+                            <div class="btn-group">
+                                <a href="{{ url_for('view_protocol', protocol_id=protocol.id) }}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    Просмотр
+                                </a>
+                                <a href="{{ url_for('print_protocol', protocol_id=protocol.id) }}" 
+                                   class="btn btn-sm btn-outline-secondary">
+                                    Печать
+                                </a>
+                                <button class="btn btn-sm btn-outline-danger" 
+                                        onclick="deleteProtocol({{ protocol.id }})">
+                                    Удалить
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function deleteProtocol(id) {
+    if (confirm('Вы уверены, что хотите удалить этот протокол?')) {
+        fetch(`/protocols/${id}`, {
+            method: 'DELETE',
+        }).then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Ошибка при удалении протокола');
+            }
+        });
+    }
+}
+</script>
+{% endblock %} 

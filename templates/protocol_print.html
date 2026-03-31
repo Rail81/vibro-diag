@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Протокол {{ protocol.protocol_number }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12pt;
+            line-height: 1.4;
+            margin: 1.5cm;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo {
+            width: 1200px;    /* Устанавливаем ширину 1200px */
+            margin-bottom: 50px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .lab-title {
+            font-size: 16pt;
+            font-weight: bold;
+            margin: 30px 0 15px 0;
+        }
+        .certificate-info {
+            font-size: 12pt;
+            margin-bottom: 40px;
+        }
+        .protocol-title {
+            font-size: 18pt;
+            font-weight: bold;
+            margin: 40px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        table, th, td {
+            border: 1px solid black;
+            padding: 4px 8px;
+        }
+        th {
+            background-color: #FFB74D;
+            font-weight: bold;
+        }
+        .equipment-info th {
+            width: 40%;
+            text-align: left;
+        }
+        .measurement-table th {
+            text-align: center;
+        }
+        .diagram {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .diagram img {
+            max-width: 100%;
+        }
+        .footer {
+            margin-top: 30px;
+        }
+        .signature-line {
+            margin-top: 20px;
+            position: relative;
+        }
+        .signature-line p {
+            margin-bottom: 5px;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+        .conclusion ul {
+            margin-top: 10px;
+            padding-left: 20px;
+        }
+        .conclusion li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="{{ url_for('static', filename='logo.png', _external=True) }}" alt="Логотип" class="logo">
+        
+        <div class="lab-title">
+            ИСПЫТАТЕЛЬНАЯ ЛАБОРАТОРИЯ
+        </div>
+
+        <div class="certificate-info">
+            Свидетельство об аттестации лаборатории неразрушающего контроля № ЛНК-061А0073<br>
+            от 20.12.2024г, выдано ООО "НУЦ "Качество", действительно до 20.12.2027г.
+        </div>
+
+        <div class="protocol-title">
+            Протокол № {{ protocol.protocol_number }}<br>
+            вибрационной диагностики оборудования
+        </div>
+    </div>
+
+    <table class="equipment-info">
+        <tr>
+            <th>Наименование организации-владельца электроустановки</th>
+            <td>{{ protocol.object.organization.name }}</td>
+        </tr>
+        <tr>
+            <th>Объект</th>
+            <td>{{ protocol.object.name }}</td>
+        </tr>
+        <tr>
+            <th>Диспетчерское наименование</th>
+            <td>{{ protocol.equipment.name }}</td>
+        </tr>
+        <tr>
+            <th>Дата</th>
+            <td>{{ protocol.date.strftime('%d.%m.%Y') }}</td>
+        </tr>
+    </table>
+
+    <div style="text-align: center; margin-top: 50px; font-size: 14pt; font-weight: bold;">
+        УИИиД ДЦЭЭ
+    </div>
+
+    <!-- Добавляем разрыв страницы -->
+    <div class="page-break"></div>
+
+    <h4>Характеристики обследуемого оборудования</h4>
+    <table class="equipment-info">
+        <tr>
+            <th colspan="2" style="background-color: #FFB74D;">Электродвигатель</th>
+        </tr>
+        <tr>
+            <th>Марка:</th>
+            <td>{{ protocol.equipment.model }}</td>
+        </tr>
+        <tr>
+            <th>Мощность, кВт:</th>
+            <td>{{ protocol.equipment.power }}</td>
+        </tr>
+        <tr>
+            <th>Частота вращения, об/мин:</th>
+            <td>{{ protocol.equipment.frequency }}</td>
+        </tr>
+        <tr>
+            <th>Заводской номер:</th>
+            <td>{{ protocol.equipment.serial_number }}</td>
+        </tr>
+        <tr>
+            <th>Дата ввода в эксплуатацию:</th>
+            <td>{{ protocol.equipment.installation_date.strftime('%d.%m.%Y') }}</td>
+        </tr>
+    </table>
+
+    <h4>1. Замеры вибрации агрегата на подшипниках под нагрузкой (для горизонтального расположения вала двигателя)</h4>
+    
+    <div class="diagram">
+        <img src="{{ url_for('static', filename='measurement_points_horizontal.png', _external=True) }}" alt="Схема точек измерения вибрации (горизонтальное расположение)">
+        <p>Рисунок 1. Схема точек измерения вибрации</p>
+    </div>
+
+    <table class="measurement-table">
+        <thead>
+            <tr>
+                <th rowspan="2">Точка измерения</th>
+                <th rowspan="2">Направление измерения</th>
+                <th>Значение нормируемого параметра, мм/с</th>
+                <th rowspan="2">Нормативное значение исправного состояния*</th>
+                <th rowspan="2">Классификация дефекта</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for point in range(1, 13) %}
+            <tr>
+                <td rowspan="3">{{ point }}</td>
+                <td>Вертикальное</td>
+                <td>{{ "%.2f"|format(measurements[point].vertical.value) if measurements[point].vertical else '' }}</td>
+                <td rowspan="3">
+                    {% if point <= 3 %}
+                    Для ЭД до 15 кВт – до 1,8 мм/с
+                    {% elif point <= 6 %}
+                    Для ЭД от 15 до 200 кВт – до 2,8 мм/с
+                    {% else %}
+                    Для ЭД свыше 200 кВт – до 4,5 мм/с
+                    {% endif %}
+                </td>
+                <td rowspan="3">{{ measurements[point].defect_class if measurements[point] else '' }}</td>
+            </tr>
+            <tr>
+                <td>Горизонтальное</td>
+                <td>{{ "%.2f"|format(measurements[point].horizontal.value) if measurements[point].horizontal else '' }}</td>
+            </tr>
+            <tr>
+                <td>Осевое</td>
+                <td>{{ "%.2f"|format(measurements[point].axial.value) if measurements[point].axial else '' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- После первой таблицы измерений -->
+    <p>*нормативное значение принимается, если иные требования к вибрации отсутствуют в документах завода-изготовителя.</p>
+
+    <!-- Добавляем разрыв страницы -->
+    <div class="page-break"></div>
+
+    <h4>2. Замеры вибрации агрегата на подшипниках под нагрузкой (для вертикального расположения вала двигателя)</h4>
+
+    <div class="diagram">
+        <img src="{{ url_for('static', filename='measurement_points_vertical.png', _external=True) }}" alt="Схема точек измерения вибрации (вертикальное расположение)">
+        <p>Рисунок 2. Схема точек измерения вибрации</p>
+    </div>
+
+    <table class="measurement-table">
+        <thead>
+            <tr>
+                <th rowspan="2">Точка измерения</th>
+                <th rowspan="2">Направление измерения</th>
+                <th>Значение нормируемого параметра, мм/с</th>
+                <th rowspan="2">Нормативное значение исправного состояния*</th>
+                <th rowspan="2">Классификация дефекта</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for point in range(1, 5) %}
+            <tr>
+                <td rowspan="3">{{ point }}</td>
+                <td>Фронтальное</td>
+                <td>{{ "%.2f"|format(measurements[point].vertical.value) if measurements[point].vertical else '' }}</td>
+                <td rowspan="3">
+                    {% if point <= 3 %}
+                    Для ЭД до 15 кВт – до 1,8 мм/с
+                    {% elif point <= 6 %}
+                    Для ЭД от 15 до 200 кВт – до 2,8 мм/с
+                    {% else %}
+                    Для ЭД свыше 200 кВт – до 4,5 мм/с
+                    {% endif %}
+                </td>
+                <td rowspan="3">{{ measurements[point].defect_class if measurements[point] else '' }}</td>
+            </tr>
+            <tr>
+                <td>Поперечное</td>
+                <td>{{ "%.2f"|format(measurements[point].horizontal.value) if measurements[point].horizontal else '' }}</td>
+            </tr>
+            <tr>
+                <td>Осевое</td>
+                <td>{{ "%.2f"|format(measurements[point].axial.value) if measurements[point].axial else '' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- После таблицы измерений -->
+    <p>*нормативное значение принимается, если иные требования к вибрации отсутствуют в документах завода-изготовителя.</p>
+
+    <div class="normative-docs">
+        <h4>Нормативно-техническая документация:</h4>
+        <p>ГОСТ ИСО 10816-1-97 Контроль состояния машин по результатам измерений вибрации на невращающихся частях (Часть 1)</p>
+        <p>ГОСТ ИСО 10816-3-2002 Контроль состояния машин по результатам измерений вибрации на невращающихся частях (Часть 3)</p>
+        <p>Система мониторинга и диагностики технического состояния электромеханического оборудования (инструкция ООО "Башнефть-Добыча")</p>
+    </div>
+
+    <!-- Добавляем разрыв страницы -->
+    <div class="page-break"></div>
+
+    <h4>Средства измерения</h4>
+    <table class="equipment-info">
+        <tr>
+            <th colspan="2" style="background-color: #FFB74D;">Средство измерения</th>
+        </tr>
+        <tr>
+            <th>Наименование прибора:</th>
+            <td>{{ protocol.device.name }}</td>
+        </tr>
+        <tr>
+            <th>Модель:</th>
+            <td>{{ protocol.device.model }}</td>
+        </tr>
+        <tr>
+            <th>Заводской номер:</th>
+            <td>{{ protocol.device.serial_number }}</td>
+        </tr>
+        <tr>
+            <th>Свидетельство о поверке:</th>
+            <td>{{ protocol.device.verification_number }} от {{ protocol.device.verification_date.strftime('%d.%m.%Y') }}, действительно до {{ protocol.device.valid_until.strftime('%d.%m.%Y') }}</td>
+        </tr>
+    </table>
+
+    <div class="conclusion">
+        <h4>Заключение:</h4>
+        <p>{{ protocol.conclusion }}</p>
+        <ul style="list-style-type: disc; margin-left: 20px;">
+            <li>Оборудование исправно. Проведение ремонтных работ не требуется. ППР переносится на "межремонтный период"</li>
+            <li>Начальная стадия дефекта. Срок периодических обследований уменьшить в 2 раза</li>
+            <li>Развивающийся дефект. Необходимо устранить дефект при ближайшем выводе оборудования в ремонт, но не позднее "2 месяцев с даты проведения диагностики"</li>
+            <li>Аварийный дефект должен быть устранен в течение 48 часов с момента обнаружения</li>
+        </ul>
+    </div>
+
+    <div class="recommendations">
+        <h4>Рекомендации:</h4>
+        <p>{{ protocol.recommendations }} (Отсутствуют / Произвести ревизию контактных соединений / Обновить оперативные выключатели и т.п. согласно приложенному чек-листу технической диагностики)</p>
+    </div>
+
+    <div class="footer">
+        <div class="signature-line">
+            <p>Обследование провели: {{ protocol.inspector.position }}, {{ protocol.inspector.department }}</p>
+            <p>________________________ {{ protocol.inspector.name }}</p>
+            <p>Удостоверение № {{ protocol.inspector.certification_number }}</p>
+            <p style="margin-left: 150px;">________________________</p>
+        </div>
+
+        <div class="signature-line">
+            <p>Заключение подготовил: {{ protocol.inspector.position }}, {{ protocol.inspector.department }}</p>
+            <p>________________________ {{ protocol.inspector.name }}</p>
+            <p>Удостоверение № {{ protocol.inspector.certification_number }}</p>
+            <p style="margin-left: 150px;">________________________</p>
+        </div>
+
+        <div class="signature-line">
+            <p>Протокол проверил: {{ protocol.reviewer.position }}, {{ protocol.reviewer.department }}</p>
+            <p>________________________ {{ protocol.reviewer.name }}</p>
+            <p>Удостоверение № {{ protocol.reviewer.certification_number }}</p>
+            <p style="margin-left: 150px;">________________________</p>
+            <p style="float: right;">М.П.</p>
+        </div>
+    </div>
+
+    <div style="font-size: 8pt; margin-top: 40px;">
+        <p>Перепечатка и воспроизведение, частичное тиражирование и использование данных, приведенных в данном протоколе, без разрешения руководства лаборатории ЗАПРЕЩЕНЫ!</p>
+        <table style="border: none; font-size: 8pt;">
+            <tr>
+                <td>Номер свидетельства</td>
+                <td>Номер протокола</td>
+                <td>Страниц в протоколе</td>
+                <td>Номер страницы</td>
+            </tr>
+            <tr>
+                <td>ЛНК-061А0073</td>
+                <td>{{ protocol.protocol_number }}</td>
+                <td>4</td>
+                <td>4</td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html> 

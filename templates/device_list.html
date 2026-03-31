@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Справочник измерительных приборов</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDeviceModal">
+            Добавить прибор
+        </button>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Наименование</th>
+                        <th>Модель</th>
+                        <th>Серийный номер</th>
+                        <th>Номер свидетельства</th>
+                        <th>Дата поверки</th>
+                        <th>Действительно до</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for device in devices %}
+                    <tr>
+                        <td>{{ device.name }}</td>
+                        <td>{{ device.model }}</td>
+                        <td>{{ device.serial_number }}</td>
+                        <td>{{ device.verification_number }}</td>
+                        <td>{{ device.verification_date.strftime('%d.%m.%Y') }}</td>
+                        <td>{{ device.valid_until.strftime('%d.%m.%Y') }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="editDevice({{ device.id }}, 
+                                        '{{ device.name }}',
+                                        '{{ device.model }}',
+                                        '{{ device.serial_number }}',
+                                        '{{ device.verification_number }}',
+                                        '{{ device.verification_date.strftime('%Y-%m-%d') }}',
+                                        '{{ device.valid_until.strftime('%Y-%m-%d') }}'
+                                    )">
+                                Редактировать
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="deleteDevice({{ device.id }})">
+                                Удалить
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно добавления прибора -->
+<div class="modal fade" id="addDeviceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title">Добавление измерительного прибора</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Наименование</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Модель</label>
+                        <input type="text" name="model" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Серийный номер</label>
+                        <input type="text" name="serial_number" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Номер свидетельства о поверке</label>
+                        <input type="text" name="verification_number" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Дата поверки</label>
+                        <input type="date" name="verification_date" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Действительно до</label>
+                        <input type="date" name="valid_until" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно редактирования -->
+<div class="modal fade" id="editDeviceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editDeviceForm">
+                <div class="modal-header">
+                    <h5 class="modal-title">Редактирование прибора</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_device_id">
+                    <div class="mb-3">
+                        <label class="form-label">Наименование</label>
+                        <input type="text" id="edit_name" name="name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Модель</label>
+                        <input type="text" id="edit_model" name="model" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Серийный номер</label>
+                        <input type="text" id="edit_serial_number" name="serial_number" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Номер свидетельства о поверке</label>
+                        <input type="text" id="edit_verification_number" name="verification_number" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Дата поверки</label>
+                        <input type="date" id="edit_verification_date" name="verification_date" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Действительно до</label>
+                        <input type="date" id="edit_valid_until" name="valid_until" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+let editModal;
+
+document.addEventListener('DOMContentLoaded', function() {
+    editModal = new bootstrap.Modal(document.getElementById('editDeviceModal'));
+});
+
+function editDevice(id, name, model, serial_number, verification_number, verification_date, valid_until) {
+    document.getElementById('edit_device_id').value = id;
+    document.getElementById('edit_name').value = name;
+    document.getElementById('edit_model').value = model;
+    document.getElementById('edit_serial_number').value = serial_number;
+    document.getElementById('edit_verification_number').value = verification_number;
+    document.getElementById('edit_verification_date').value = verification_date;
+    document.getElementById('edit_valid_until').value = valid_until;
+    
+    editModal.show();
+}
+
+document.getElementById('editDeviceForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const id = document.getElementById('edit_device_id').value;
+    
+    fetch(`/devices/${id}`, {
+        method: 'PUT',
+        body: formData
+    }).then(response => {
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            alert('Ошибка при обновлении прибора');
+        }
+    });
+});
+
+function deleteDevice(id) {
+    if (confirm('Вы уверены, что хотите удалить этот прибор?')) {
+        fetch(`/devices/${id}`, {
+            method: 'DELETE',
+        }).then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Ошибка при удалении прибора');
+            }
+        });
+    }
+}
+</script>
+{% endblock %} 

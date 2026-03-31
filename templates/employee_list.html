@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Справочник сотрудников</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addEmployeeModal">
+            Добавить сотрудника
+        </button>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ФИО</th>
+                        <th>Должность</th>
+                        <th>Отдел</th>
+                        <th>Номер сертификата</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for employee in employees %}
+                    <tr>
+                        <td>{{ employee.name }}</td>
+                        <td>{{ employee.position }}</td>
+                        <td>{{ employee.department }}</td>
+                        <td>{{ employee.certification_number }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" 
+                                    onclick="editEmployee({{ employee.id }}, '{{ employee.name }}', 
+                                             '{{ employee.position }}', '{{ employee.department }}', 
+                                             '{{ employee.certification_number }}')">
+                                Редактировать
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" 
+                                    onclick="deleteEmployee({{ employee.id }})">
+                                Удалить
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно добавления сотрудника -->
+<div class="modal fade" id="addEmployeeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title">Добавление сотрудника</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">ФИО</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Должность</label>
+                        <input type="text" name="position" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Отдел</label>
+                        <input type="text" name="department" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Номер сертификата</label>
+                        <input type="text" name="certification_number" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Добавить после существующего модального окна -->
+<div class="modal fade" id="editEmployeeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editEmployeeForm" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title">Редактирование сотрудника</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_employee_id" name="employee_id">
+                    <div class="mb-3">
+                        <label class="form-label">ФИО</label>
+                        <input type="text" id="edit_name" name="name" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Должность</label>
+                        <input type="text" id="edit_position" name="position" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Отдел</label>
+                        <input type="text" id="edit_department" name="department" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Номер сертификата</label>
+                        <input type="text" id="edit_certification_number" name="certification_number" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Подключение Bootstrap JS и зависимостей -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"></script>
+
+<script>
+let editModal;
+
+document.addEventListener('DOMContentLoaded', function() {
+    editModal = new bootstrap.Modal(document.getElementById('editEmployeeModal'));
+});
+
+function editEmployee(id, name, position, department, certification_number) {
+    document.getElementById('edit_employee_id').value = id;
+    document.getElementById('edit_name').value = name;
+    document.getElementById('edit_position').value = position;
+    document.getElementById('edit_department').value = department;
+    document.getElementById('edit_certification_number').value = certification_number;
+    
+    editModal.show();
+}
+
+document.getElementById('editEmployeeForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const id = document.getElementById('edit_employee_id').value;
+    
+    fetch(`/employees/${id}`, {
+        method: 'PUT',
+        body: formData
+    }).then(response => {
+        if (response.ok) {
+            window.location.reload();
+        } else {
+            alert('Ошибка при обновлении сотрудника');
+        }
+    });
+});
+
+function deleteEmployee(id) {
+    if (confirm('Вы уверены, что хотите удалить этого сотрудника?')) {
+        fetch(`/employees/${id}`, {
+            method: 'DELETE',
+        }).then(response => {
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Ошибка при удалении сотрудника');
+            }
+        });
+    }
+}
+</script>
+{% endblock %} 

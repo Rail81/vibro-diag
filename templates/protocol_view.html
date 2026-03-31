@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Протокол № {{ protocol.protocol_number }}</h2>
+        <div>
+            <a href="{{ url_for('download_protocol', protocol_id=protocol.id) }}" 
+               class="btn btn-primary">
+                <i class="fas fa-download"></i> Сохранить PDF
+            </a>
+            <a href="{{ url_for('protocol_list') }}" 
+               class="btn btn-secondary">
+                Вернуться к списку
+            </a>
+        </div>
+    </div>
+
+    <!-- Основное содержимое протокола -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>Дата:</strong> {{ protocol.date.strftime('%d.%m.%Y') }}
+                </div>
+                <div class="col-md-6">
+                    <strong>Оборудование:</strong> {{ protocol.equipment.name }}
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <strong>Объект:</strong> {{ protocol.object.name }}
+                </div>
+                <div class="col-md-6">
+                    <strong>Специалист:</strong> {{ protocol.inspector.name }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Таблица измерений -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Результаты измерений</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Точка</th>
+                            <th>Направление</th>
+                            <th>Значение (мм/с)</th>
+                            <th>Норма (мм/с)</th>
+                            <th>Классификация дефекта</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for point in range(1, 13) %}
+                        <tr>
+                            <td rowspan="3">{{ point }}</td>
+                            <td>Вертикальное</td>
+                            <td>{{ "%.2f"|format(measurements[point].vertical.value) if measurements[point].vertical else '' }}</td>
+                            <td rowspan="3">
+                                {% if point <= 3 %}
+                                Для ЭД до 15 кВт – до 1,8 мм/с
+                                {% elif point <= 6 %}
+                                Для ЭД от 15 до 200 кВт – до 2,8 мм/с
+                                {% else %}
+                                Для ЭД свыше 200 кВт – до 4,5 мм/с
+                                {% endif %}
+                            </td>
+                            <td rowspan="3">{{ measurements[point].defect_class if measurements[point] else '' }}</td>
+                        </tr>
+                        <tr>
+                            <td>Горизонтальное</td>
+                            <td>{{ "%.2f"|format(measurements[point].horizontal.value) if measurements[point].horizontal else '' }}</td>
+                        </tr>
+                        <tr>
+                            <td>Осевое</td>
+                            <td>{{ "%.2f"|format(measurements[point].axial.value) if measurements[point].axial else '' }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Заключение и рекомендации -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Заключение и рекомендации</h5>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <h6>Заключение:</h6>
+                <p class="white-space-pre-wrap">{{ protocol.conclusion }}</p>
+            </div>
+            <div class="mb-3">
+                <h6>Рекомендации:</h6>
+                <p class="white-space-pre-wrap">{{ protocol.recommendations }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.white-space-pre-wrap {
+    white-space: pre-wrap;
+}
+</style>
+{% endblock %} 
