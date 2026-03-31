@@ -1,21 +1,7 @@
 @echo off
-
-:: Check for virtual environment
-if not exist venv (
-    echo Virtual environment not found! Please run setup.bat first.
-    pause
-    exit /b
-)
-
-:: Activate virtual environment
-call venv\Scripts\activate
-
-:: Set Flask environment variables
-set FLASK_APP=app.py
-set FLASK_ENV=development
-
-:: Run the application
-echo Starting vibro-diagnostics application...
-flask run
-
+echo.
+echo To run the application, please follow these steps:
+_e_cho 1. Activate the virtual environment: venv\Scripts\activate
+echo 2. Run the application: flask run
+echo.
 pause
