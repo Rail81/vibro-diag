@@ -16,9 +16,9 @@ if not exist venv (
 )
 call venv\Scripts\activate
 
-:: Upgrade pip
-echo Upgrading pip...
-python -m pip install --upgrade pip
+:: Upgrade pip & setuptools
+echo Upgrading pip & setuptools...
+python -m pip install --upgrade pip setuptools
 
 :: Install dependencies
 echo Installing Python dependencies...
