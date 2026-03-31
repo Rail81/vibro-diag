@@ -1,53 +1,35 @@
 @echo off
-echo Настройка окружения для приложения вибродиагностики...
+echo Configuring the environment for the vibro-diagnostics application (offline)...
 
-:: Проверка наличия Python
+:: Check for Python
 where python >nul 2>&1
 if %ERRORLEVEL% NEQ 0 (
-    echo Python не установлен! Установите Python из папки installers\python-3.9.7-amd64.exe
+    echo Python is not installed! Please install it first.
     pause
     exit /b
 )
 
-:: Проверка наличия PostgreSQL
-if not exist "C:\Program Files\PostgreSQL\15\bin\psql.exe" (
-    echo PostgreSQL не установлен! Установите PostgreSQL из папки installers\postgresql-15.5-windows-x64.exe
-    pause
-    exit /b
+:: Create and activate virtual environment
+echo Creating virtual environment...
+if not exist venv (
+    python -m venv venv
 )
-
-:: Проверка наличия wkhtmltopdf
-if not exist "C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe" (
-    echo wkhtmltopdf не установлен! Установите wkhtmltopdf из папки installers\wkhtmltopdf-64bit.exe
-    pause
-    exit /b
-)
-
-:: Создание и активация виртуального окружения
-echo Создание виртуального окружения...
-if exist venv (
-    echo Удаление старого виртуального окружения...
-    rmdir /s /q venv
-)
-python -m venv venv
 call venv\Scripts\activate
 
-:: Установка зависимостей из локальных файлов
-echo Установка зависимостей...
-pip install --no-index --find-links=./wheels wheel
-pip install --no-index --find-links=./wheels -r requirements.txt
+:: Upgrade pip
+echo Upgrading pip...
+python -m pip install --upgrade pip
 
-:: Создание базы данных
-echo Создание базы данных...
-set PGPASSWORD=159950707
-set PATH=%PATH%;C:\Program Files\PostgreSQL\15\bin
-"C:\Program Files\PostgreSQL\15\bin\psql.exe" -U postgres -c "DROP DATABASE IF EXISTS vibro_diagnostics" -h localhost
-"C:\Program Files\PostgreSQL\15\bin\psql.exe" -U postgres -c "CREATE DATABASE vibro_diagnostics" -h localhost
+:: Install dependencies
+echo Installing Python dependencies...
+pip install -r requirements.txt
 
-:: Инициализация базы данных
-echo Инициализация базы данных...
-python init_db.py
-
-echo Установка завершена!
-echo Для запуска приложения используйте run.bat
-pause 
+echo.
+echo Setup complete!
+echo.
+echo NEXT STEPS:
+_e_cho 1. Create a .env file in the root of the project.
+echo 2. Fill in your database connection details.
+echo 3. Create and initialize the database (see README.md).
+echo 4. Run the application using: run.bat
+pause

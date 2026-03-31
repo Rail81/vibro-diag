@@ -1,21 +1,21 @@
 @echo off
 
-:: Проверка наличия виртуального окружения
+:: Check for virtual environment
 if not exist venv (
-    echo Виртуальное окружение не найдено! Сначала запустите setup_offline.bat
+    echo Virtual environment not found! Please run setup.bat first.
     pause
     exit /b
 )
 
-:: Активация виртуального окружения
+:: Activate virtual environment
 call venv\Scripts\activate
 
-:: Установка переменных окружения
+:: Set Flask environment variables
 set FLASK_APP=app.py
 set FLASK_ENV=development
 
-:: Запуск приложения
-echo Запуск приложения вибродиагностики...
-python app.py
+:: Run the application
+echo Starting vibro-diagnostics application...
+flask run
 
-pause 
+pause

@@ -71,7 +71,7 @@ call venv\Scripts\activate
 :: Установка зависимостей Python
 echo Установка зависимостей Python...
 python -m pip install --upgrade pip
-pip install --no-index --find-links=wheels -r requirements.txt
+pip install -r requirements.txt
 
 :: Настройка переменных окружения
 echo Настройка переменных окружения...
